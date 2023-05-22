@@ -1,0 +1,74 @@
+service: softtek-reto
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-west-2
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:*
+          Resource:
+            - arn:aws:dynamodb:us-west-2:425561434292:table/ToDoTable
+
+functions:
+  api:
+    handler: src/index.handler
+    events:
+      - httpApi:
+          path: /
+          method: get
+
+  createTask:
+    handler: src/addTask.addTask
+    events:
+      - httpApi:
+          path: /tasks
+          method: post
+
+  listTasks:
+    handler: src/getTasks.getTasks
+    events:
+      - httpApi:
+          path: /tasks
+          method: get
+
+  checkTask:
+    handler: src/checkTask.checkTask
+    events:
+      - httpApi:
+          path: /tasks/{id}
+          method: put
+          
+  deleteTask:
+    handler: src/deleteTask.deleteTask
+    events:
+      - httpApi:
+          path: /tasks/{id}
+          method: delete
+
+  getPlanetsApi:
+    handler: src/getPlanets.getPlanets
+    environment:
+      API_URL: https://swapi.py4e.com/api
+    events:
+      - httpApi:
+          path: /planets
+          method: get
+
+resources:
+  Resources:
+    ToDoTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ToDoTable
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
